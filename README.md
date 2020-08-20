@@ -107,7 +107,7 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 }
 ```
 
-通过调用WMI实现  
+通过调用WMI实现   
 ```C
        char nErrorCode[32];
 	ReArmSKUCount = 0;
@@ -173,4 +173,43 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 		return err->ErrorCode;
 
 	}
+```
+
+
+调用方法:  
+c++   
+```C
+typedef int (*CallbackFun)(std::string input);
+typedef void (*SetCallBackFun)(CallbackFun callbackfun);
+typedef int (*GetLicenses)();
+
+int myfunction(std::string input)
+{
+    std::cout <<  input << "\n";
+    return 0;
+}
+
+int main()
+{
+    HMODULE p = LoadLibrary(L"LicenseList.dll");
+    SetCallBackFun setcallbackfun = (SetCallBackFun)GetProcAddress(p, "SetCallBackFun");
+    GetLicenses myGetLicenses = (GetLicenses)GetProcAddress(p, "GetLicenses");
+    setcallbackfun(myfunction);
+    myGetLicenses();
+    system("pause");
+    return 0;
+}
+```   
+
+c#
+```C
+ static void MyCallbackFunc(string value)
+        {
+            Console.WriteLine(value.ToString());
+        }
+        static void Main(string[] args)
+        {
+            LicenseList.CallBack.GetLicense(MyCallbackFunc);
+            Console.ReadLine();
+        }
 ```
