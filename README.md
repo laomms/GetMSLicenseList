@@ -176,7 +176,7 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 ```
 
 
-调用方法:  
+# 调用方法:  
 c++   
 ```C
 typedef int (*CallbackFun)(std::string input);
