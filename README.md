@@ -98,7 +98,7 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 					}
 					list->Add("Name:" + Name + "," + "Channel:" + Channel + "," + "Key:" + PartialProductKey + "," + "Activation:" + LicenseStatus + "," + "InstalltionId:" + IID);
 					String^ s = "Name:" + Name + "," + "Channel:" + Channel + "," + "Key:" + PartialProductKey + "," + "Activation:" + LicenseStatus + "," + "InstalltionId:" + IID;					
-					 myCallback(ss);		
+					 GetResult(s);		
 				}
 			}
 		}
@@ -168,8 +168,7 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 	{
 		sprintf_s(nErrorCode, "0x%08X", err->ErrorCode);
 		String^ s = GetOSLCID() == 1 ? "获取异常,错误代码:" + gcnew String(nErrorCode) : "Get exception, error code:" + gcnew String(nErrorCode);
-		std::string ss = msclr::interop::marshal_as<std::string>(s);
-		myCallback(ss);
+		GetResult(s);
 		return err->ErrorCode;
 
 	}
