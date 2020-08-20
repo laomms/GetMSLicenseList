@@ -3,7 +3,7 @@
 两种方式：  
 通过调用SPPC实现  
 
- ```C
+```C
 int GetLicenseList(System::Action<String^>^ GetResult) 
 {
 
@@ -105,4 +105,72 @@ int GetLicenseList(System::Action<String^>^ GetResult)
 	}
 	SLClose(hSlc);
 }
+```
+
+通过调用WMI实现  
+```C
+       char nErrorCode[32];
+	ReArmSKUCount = 0;
+	SelectQuery^ NAQuery = gcnew SelectQuery("SELECT Name,ID,Description,PartialProductKey,OfflineInstallationId,LicenseStatus FROM OfficeSoftwareProtectionProduct WHERE PartialProductKey <> null ");
+	ManagementObjectSearcher^ NASearcher = gcnew ManagementObjectSearcher(NAQuery);
+	if (NASearcher->Get()->Count == 0)
+		goto exit;
+	try
+	{
+		for each (ManagementObject ^ mObject in NASearcher->Get())
+		{
+			String^ szStatusReason = mObject["LicenseStatusReason"]->ToString();
+			IID = mObject["OfflineInstallationId"]->ToString();
+			PartialProductKey = mObject["PartialProductKey"]->ToString();
+			Name = mObject["Name"]->ToString()->Split(',')[1]->Replace("edition", "")->Trim();
+			String^ Description = mObject["Description"]->ToString()->Split(',')[1]->Replace("channel", "")->Trim();
+			String^ LicStatus = mObject["LicenseStatus"]->ToString();
+			if (LicStatus == "0")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "未授权" : "Unlicensed";
+			}
+			else if (LicStatus == "1")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "已授权" : "Licensed";
+			}
+			else if (LicStatus == "2")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "初始宽限期" : "OOBGrace";
+			}
+			else if (LicStatus == "3")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "超出宽限期" : "OOTGrace";
+			}
+			else if (LicStatus == "4")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "非正版宽限期" : "NonGenuineGrace";
+			}
+			else if (LicStatus == "5")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "通知状态" : "ExtendedGrace";
+			}
+			else if (LicStatus == "6")
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "延长宽限期" : "ExtendedGrace";
+			}
+			else
+			{
+				LicenseStatus = GetOSLCID() == 1 ? "未知" : "UnKnown";
+			}
+
+
+			list->Add("Name:" + Name + "," + "Channel:" + Channel + "," + "Key:" + PartialProductKey + "," + "Activation:" + LicenseStatus + "," + "InstalltionId:" + IID + "," + "StatusList:" + StatusList);
+			String^ s = "Name:" + Name + "," + "Channel:" + Channel + "," + "Key:" + PartialProductKey + "," + "Activation:" + LicenseStatus + "," + "InstalltionId:" + IID + "," + "StatusList:" + StatusList;			
+			myCallback(ss);
+		}
+	}
+	catch (COMException^ err)
+	{
+		sprintf_s(nErrorCode, "0x%08X", err->ErrorCode);
+		String^ s = GetOSLCID() == 1 ? "获取异常,错误代码:" + gcnew String(nErrorCode) : "Get exception, error code:" + gcnew String(nErrorCode);
+		std::string ss = msclr::interop::marshal_as<std::string>(s);
+		myCallback(ss);
+		return err->ErrorCode;
+
+	}
 ```
